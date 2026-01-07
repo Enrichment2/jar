@@ -1,6 +1,7 @@
 package com.jar.app
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -10,8 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class NoteAdapter(
-    private val onNoteClick: (Note) -> Unit,
-    private val onNoteLongClick: (Note) -> Unit
+    private val onNoteClick: (Note) -> Unit
 ) : ListAdapter<Note, NoteAdapter.NoteViewHolder>(NoteDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
@@ -33,22 +33,28 @@ class NoteAdapter(
 
         init {
             binding.root.setOnClickListener {
-                val position = adapterPosition
+                val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     onNoteClick(getItem(position))
                 }
             }
-            binding.root.setOnLongClickListener {
-                val position = adapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    onNoteLongClick(getItem(position))
-                }
-                true
-            }
         }
 
         fun bind(note: Note) {
-            binding.textContent.text = note.content
+            if (note.title.isNotEmpty()) {
+                binding.textTitle.visibility = View.VISIBLE
+                binding.textTitle.text = note.title
+            } else {
+                binding.textTitle.visibility = View.GONE
+            }
+
+            if (note.content.isNotEmpty()) {
+                binding.textContent.visibility = View.VISIBLE
+                binding.textContent.text = note.content
+            } else {
+                binding.textContent.visibility = View.GONE
+            }
+
             binding.textDate.text = formatDate(note.updatedAt)
         }
 
