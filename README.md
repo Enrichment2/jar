@@ -2,8 +2,6 @@
 
 A simple, local-first notes app. Your ideas in a jar.
 
-## Version 0.1.0
-
 This is the bare minimum. It does three things:
 1. Add a note
 2. Edit a note (tap it)
