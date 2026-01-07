@@ -2,18 +2,16 @@
 
 A simple, local-first notes app. Your ideas in a jar.
 
-## Version 0.3.0
+## Features
 
-This is the bare minimum. It does three things:
-1. Add a note
-2. Edit a note (tap it)
-3. Delete a note (long press)
-
-That's it. No cloud. No account. No tracking. Just notes, stored on your device.
+- Create notes with optional title and body
+- Full-screen editor with auto-save
+- Material You theming (matches your wallpaper on Android 12+)
+- No cloud. No account. No tracking. Just notes, stored on your device.
 
 ## Building
 
-1. Open this project in Android Studio (Arctic Fox or newer)
+1. Open this project in Android Studio
 2. Let Gradle sync
 3. Run on your device or emulator
 
