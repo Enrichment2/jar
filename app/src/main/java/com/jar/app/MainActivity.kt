@@ -1,15 +1,23 @@
 package com.jar.app
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
 import com.jar.app.databinding.ActivityMainBinding
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -18,6 +26,19 @@ class MainActivity : AppCompatActivity() {
 
     private var isSearchVisible = false
     private var isFilterVisible = false
+    private var pendingExportJson: String? = null
+
+    private val exportLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let { saveExportToFile(it) }
+    }
+
+    private val importLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { importFromFile(it) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +64,14 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.action_filter -> {
                     toggleFilter()
+                    true
+                }
+                R.id.action_export -> {
+                    exportNotes()
+                    true
+                }
+                R.id.action_import -> {
+                    importNotes()
                     true
                 }
                 else -> false
@@ -147,5 +176,67 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra(NoteEditorActivity.EXTRA_NOTE_UPDATED_AT, it.note.updatedAt)
         }
         startActivity(intent)
+    }
+
+    private fun exportNotes() {
+        lifecycleScope.launch {
+            try {
+                val json = viewModel.exportToJson()
+                pendingExportJson = json
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val fileName = "jar-notes-${dateFormat.format(Date())}.json"
+                exportLauncher.launch(fileName)
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun saveExportToFile(uri: Uri) {
+        val json = pendingExportJson ?: return
+        try {
+            contentResolver.openOutputStream(uri)?.use { outputStream ->
+                outputStream.write(json.toByteArray())
+            }
+            Toast.makeText(this, "Notes exported successfully", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Failed to save file: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+        pendingExportJson = null
+    }
+
+    private fun importNotes() {
+        importLauncher.launch(arrayOf("application/json"))
+    }
+
+    private fun importFromFile(uri: Uri) {
+        lifecycleScope.launch {
+            try {
+                val json = contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                if (json.isNullOrEmpty()) {
+                    Toast.makeText(this@MainActivity, "File is empty", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                when (val result = viewModel.importFromJson(json)) {
+                    is ImportResult.Success -> {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Imported ${result.notesImported} notes and ${result.tagsImported} new tags",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    is ImportResult.Error -> {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Import failed: ${result.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Import failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }

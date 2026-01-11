@@ -1,8 +1,11 @@
 package com.jar.app
 
 import androidx.lifecycle.LiveData
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 
 class NoteRepository(private val noteDao: NoteDao, private val tagDao: TagDao) {
+    private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
     val allNotes: LiveData<List<Note>> = noteDao.getAllNotes()
     val allNotesWithTags: LiveData<List<NoteWithTags>> = tagDao.getNotesWithTags()
     val allTags: LiveData<List<Tag>> = tagDao.getAllTags()
@@ -60,4 +63,82 @@ class NoteRepository(private val noteDao: NoteDao, private val tagDao: TagDao) {
     fun getNotesByTag(tagId: Long): LiveData<List<NoteWithTags>> {
         return tagDao.getNotesByTag(tagId)
     }
+
+    suspend fun exportToJson(): String {
+        val notes = noteDao.getAllNotesList()
+        val tags = tagDao.getAllTagsList()
+
+        val exportNotes = notes.map { note ->
+            val noteTags = tagDao.getTagsForNote(note.id)
+            ExportNote(
+                title = note.title,
+                content = note.content,
+                createdAt = note.createdAt,
+                updatedAt = note.updatedAt,
+                tagNames = noteTags.map { it.name }
+            )
+        }
+
+        val exportTags = tags.map { tag ->
+            ExportTag(name = tag.name, color = tag.color)
+        }
+
+        val exportData = ExportData(
+            notes = exportNotes,
+            tags = exportTags
+        )
+
+        return gson.toJson(exportData)
+    }
+
+    suspend fun importFromJson(json: String): ImportResult {
+        return try {
+            val exportData = gson.fromJson(json, ExportData::class.java)
+            var notesImported = 0
+            var tagsImported = 0
+
+            // Import tags first
+            val tagNameToId = mutableMapOf<String, Long>()
+            exportData.tags.forEach { exportTag ->
+                val existingTag = tagDao.getTagByName(exportTag.name)
+                if (existingTag != null) {
+                    tagNameToId[exportTag.name] = existingTag.id
+                } else {
+                    val newTag = Tag(name = exportTag.name, color = exportTag.color)
+                    val tagId = tagDao.insert(newTag)
+                    tagNameToId[exportTag.name] = tagId
+                    tagsImported++
+                }
+            }
+
+            // Import notes
+            exportData.notes.forEach { exportNote ->
+                val note = Note(
+                    title = exportNote.title,
+                    content = exportNote.content,
+                    createdAt = exportNote.createdAt,
+                    updatedAt = exportNote.updatedAt
+                )
+                val noteId = noteDao.insert(note)
+
+                // Link tags to note
+                exportNote.tagNames.forEach { tagName ->
+                    val tagId = tagNameToId[tagName]
+                    if (tagId != null) {
+                        tagDao.insertNoteTagCrossRef(NoteTagCrossRef(noteId, tagId))
+                    }
+                }
+                notesImported++
+            }
+
+            ImportResult.Success(notesImported, tagsImported)
+        } catch (e: Exception) {
+            ImportResult.Error(e.message ?: "Unknown error")
+        }
+    }
+}
+
+sealed class ImportResult {
+    data class Success(val notesImported: Int, val tagsImported: Int) : ImportResult()
+    data class Error(val message: String) : ImportResult()
 }

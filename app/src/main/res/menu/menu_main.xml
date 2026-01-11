@@ -14,4 +14,16 @@
         android:title="Filter by tag"
         app:showAsAction="ifRoom" />
 
+    <item
+        android:id="@+id/action_export"
+        android:icon="@drawable/ic_export"
+        android:title="Export notes"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_import"
+        android:icon="@drawable/ic_import"
+        android:title="Import notes"
+        app:showAsAction="never" />
+
 </menu>

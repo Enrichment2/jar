@@ -91,4 +91,12 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     suspend fun getOrCreateTag(name: String): Tag {
         return repository.getOrCreateTag(name)
     }
+
+    suspend fun exportToJson(): String {
+        return repository.exportToJson()
+    }
+
+    suspend fun importFromJson(json: String): ImportResult {
+        return repository.importFromJson(json)
+    }
 }

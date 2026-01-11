@@ -7,6 +7,9 @@ import androidx.room.*
 interface NoteDao {
     @Query("SELECT * FROM notes ORDER BY updatedAt DESC")
     fun getAllNotes(): LiveData<List<Note>>
+
+    @Query("SELECT * FROM notes ORDER BY updatedAt DESC")
+    suspend fun getAllNotesList(): List<Note>
     
     @Insert
     suspend fun insert(note: Note): Long
