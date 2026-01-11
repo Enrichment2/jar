@@ -7,8 +7,18 @@
 /captures
 .externalNativeBuild
 .cxx
-*.apk
 *.ap_
 *.aab
+
+# Large files
+/media/
+/releases/
 *.jks
 *.keystore
+*.zip
+
+# Session files
+session-summary-*.txt
+
+# Claude
+.claude/
