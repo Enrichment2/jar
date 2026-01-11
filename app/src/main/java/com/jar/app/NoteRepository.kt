@@ -64,6 +64,18 @@ class NoteRepository(private val noteDao: NoteDao, private val tagDao: TagDao) {
         return tagDao.getNotesByTag(tagId)
     }
 
+    suspend fun updateTag(tag: Tag) {
+        tagDao.update(tag)
+    }
+
+    suspend fun deleteTag(tag: Tag) {
+        tagDao.delete(tag)
+    }
+
+    suspend fun getTagNoteCount(tagId: Long): Int {
+        return tagDao.getTagNoteCount(tagId)
+    }
+
     suspend fun exportToJson(): String {
         val notes = noteDao.getAllNotesList()
         val tags = tagDao.getAllTagsList()

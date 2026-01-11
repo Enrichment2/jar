@@ -45,4 +45,7 @@ interface TagDao {
     @Transaction
     @Query("SELECT * FROM notes WHERE id IN (SELECT noteId FROM note_tag_cross_ref WHERE tagId = :tagId) ORDER BY updatedAt DESC")
     fun getNotesByTag(tagId: Long): LiveData<List<NoteWithTags>>
+
+    @Query("SELECT COUNT(*) FROM note_tag_cross_ref WHERE tagId = :tagId")
+    suspend fun getTagNoteCount(tagId: Long): Int
 }

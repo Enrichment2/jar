@@ -15,6 +15,12 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/action_sort"
+        android:icon="@drawable/ic_sort"
+        android:title="Sort"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_export"
         android:icon="@drawable/ic_export"
         android:title="Export notes"
@@ -24,6 +30,11 @@
         android:id="@+id/action_import"
         android:icon="@drawable/ic_import"
         android:title="Import notes"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_manage_tags"
+        android:title="Manage tags"
         app:showAsAction="never" />
 
 </menu>

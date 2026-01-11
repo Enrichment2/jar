@@ -3,6 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_select_all"
+        android:title="Select all"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_share"
         android:icon="@drawable/ic_share"
         android:title="Share"
@@ -13,16 +18,5 @@
         android:icon="@drawable/ic_delete"
         android:title="Delete"
         app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/action_info"
-        android:icon="@drawable/ic_info"
-        android:title="Note info"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_copy"
-        android:title="Copy all"
-        app:showAsAction="never" />
 
 </menu>
